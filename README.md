@@ -1,3 +1,4 @@
+[![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](https://www.python.org/) [![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://github.com/jacky0115/bing_image_crawler#readme) [![awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/jacky0115/bing_image_crawler.git) [![Download link](https://img.shields.io/badge/Downloads%20now-link-green?style=social&logo=appveyor)](https://github.com/jacky0115/bing_image_crawler/archive/refs/heads/main.zip)
 # bing_image_crawler 🕷️
 A fast crawler for Bing image.
 
