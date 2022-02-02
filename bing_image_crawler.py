@@ -27,8 +27,9 @@ async def download_image(img_url,storing_path,query,current_num_of_img,img_num):
     suffix=img_url[img_url.rfind('.'):]
     illegal_suffixes=(".com",".tw",".cn","io")
     for illegal_suffix in illegal_suffixes:
-        if illegal_suffix in suffix or len(suffix)>9:   # 有些圖片網址會沒有圖片副檔名而導致副檔名錯誤，手動修正副檔名
+        if len(suffix)>9 or illegal_suffix in suffix:   # 有些圖片網址會沒有圖片副檔名而導致副檔名錯誤，手動修正副檔名
             suffix=".jpg"
+            break
     folder_path=Path(storing_path+os.sep+query)
     if not folder_path.exists():
         os.mkdir(folder_path)
@@ -39,8 +40,9 @@ async def download_image(img_url,storing_path,query,current_num_of_img,img_num):
                     assert resp.status==200
                     # Path物件可以透過除法運算(/)來進行路徑的合併
                     async with async_open(folder_path/(str(current_num_of_img.value+1)+suffix),"wb") as afd:
-                        async for line in resp.content:   # 預設以行來疊代
-                            await afd.write(line)
+                        # async for line in resp.content:   # 預設以行來疊代，但有些圖片一行就太大會導致ValueError
+                        async for data in resp.content.iter_chunked(4096):   # 改成每次固定讀取4096bytes
+                            await afd.write(data)
                         current_num_of_img.value+=1
             except AssertionError as e:
                 print(f"{e}\n{resp.url}",flush=True)
