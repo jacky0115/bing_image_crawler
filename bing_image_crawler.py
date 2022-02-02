@@ -13,7 +13,7 @@ def get_request_urls(query=None,img_num=0)->list:
     :return: requesting urls
     """
     request_urls_num=math.ceil(img_num/35)
-    urls=[f"https://www.bing.com/images/async?q={query}&first={1+35*i}&count=35&cw=1177&ch=577&tsc=ImageBasicHover&datsrc=I&mmasync=1&SFX={i+1}" for i in range(request_urls_num)]
+    urls=[f"https://www.bing.com/images/async?q={query}&first={1+35*i}&count=35&cw=1177&ch=577&tsc=ImageBasicHover&datsrc=I&mmasync=1&SFX={i+1}" for i in range(request_urls_num+1)]   # 多+1是因為圖片網址不會每次都請求成功，所以故意多請求一次以免圖片不夠
     return urls
 
 # async def get_html(session,url):
@@ -23,9 +23,9 @@ async def get_html(url):
         assert resp.status==200
         return await resp.text()
 
-async def download_image(img_url,storing_path,query,current_num_of_img,img_num):
+def make_directory(img_url,storing_path,query)->(Path,str):
     suffix=img_url[img_url.rfind('.'):]
-    illegal_suffixes=(".com",".tw",".cn","io")
+    illegal_suffixes=(".com",".tw",".cn",".io")
     for illegal_suffix in illegal_suffixes:
         if len(suffix)>9 or illegal_suffix in suffix:   # 有些圖片網址會沒有圖片副檔名而導致副檔名錯誤，手動修正副檔名
             suffix=".jpg"
@@ -33,6 +33,9 @@ async def download_image(img_url,storing_path,query,current_num_of_img,img_num):
     folder_path=Path(storing_path+os.sep+query)
     if not folder_path.exists():
         os.mkdir(folder_path)
+    return folder_path,suffix
+
+async def download_image(current_num_of_img,img_num,img_url,folder_path,suffix):
     with current_num_of_img.get_lock():
         if current_num_of_img.value<img_num:
             try:
@@ -43,7 +46,6 @@ async def download_image(img_url,storing_path,query,current_num_of_img,img_num):
                         # async for line in resp.content:   # 預設以行來疊代，但有些圖片一行就太大會導致ValueError
                         async for data in resp.content.iter_chunked(4096):   # 改成每次固定讀取4096bytes
                             await afd.write(data)
-                        current_num_of_img.value+=1
             except AssertionError as e:
                 print(f"{e}\n{resp.url}",flush=True)
             except FileNotFoundError as e:
@@ -52,6 +54,8 @@ async def download_image(img_url,storing_path,query,current_num_of_img,img_num):
                 print(f"{e}\n{resp.url}",flush=True)
             except aiohttp.ClientPayloadError as e:
                 print(f"{e}\n{resp.url}",flush=True)
+            else:   # try clause都沒有發生異常才會執行else clause
+                current_num_of_img.value+=1
 
 async def main(urls,query,img_num,storing_path=os.getcwd()):
     # async with aiohttp.ClientSession() as session:   # multiprocess pool在map()或starmap()時會用pickle序列化和反序列化傳遞給func的參數，但ClientSession物件無法序列化，所以改用aiohttp.request()
@@ -69,7 +73,8 @@ async def main(urls,query,img_num,storing_path=os.getcwd()):
                 img_urls_list=pattern.findall(html)
                 for img_url in img_urls_list:
                     img_url=img_url.rsplit('?',1)[0]   # 有些圖片網址副檔名後面還會有其他網址參數，是以'?'為開頭接在副檔名後面，此行用來消除'?'之後的網址參數
-                    await download_image(img_url,storing_path,query,current_num_of_img,img_num)
+                    folder_path,suffix=make_directory(img_url,storing_path,query)
+                    await download_image(current_num_of_img,img_num,img_url,folder_path,suffix)
 
 if __name__=="__main__":
     urls=get_request_urls(query:=input("請輸入圖片關鍵字:"),img_num:=int(input("請輸入要下載的數量:")))
