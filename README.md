@@ -1,6 +1,6 @@
 [![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](https://www.python.org/) [![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://github.com/jacky0115/bing_image_crawler#readme) [![awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/jacky0115/bing_image_crawler.git) [![Download link](https://img.shields.io/badge/Download%20now-Link-green?style=social&logo=appveyor)](https://github.com/jacky0115/bing_image_crawler/archive/refs/heads/main.zip)
 # bing_image_crawler 🕷️
-A fast crawler for Bing image.
+A crawler for Bing image.
 
 
 ## How to use it?
@@ -15,3 +15,6 @@ A fast crawler for Bing image.
 9. Go make some coffee☕ and after you finish your low tea, you will see all images in your specified file.
 
 📝P.S. : If you see some urls in the terminal. That means bing_image_crawler can't download those pictures for some reason. You can download them manually if necessary.
+
+## Future change
+- [ ] Use [aiopipe](https://github.com/kchmck/aiopipe) instead of multiprocessing.Value to communicate between processes in pool. Then I can use pool.starmap() to invoke download_image which is an async function. And that would definitely make bing_image_crawler faster. But actually, I'm not sure that objects return from aiopipe can be pickled by pool.starmap(). I will try it someday.
